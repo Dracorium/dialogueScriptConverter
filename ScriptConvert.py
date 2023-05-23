@@ -29,6 +29,22 @@ import pathlib
 os.chdir('./') #change functioning directory to the folder of this file
 
 
+COLUMN_TITLES = [
+    'LineID',
+    'Speaker',
+    'Expression',
+    'Sound',
+    'Text',
+    'SpecialEvent',
+    'SpecialEffect',
+    'CharX',
+    'CharY',
+    'CharScale',
+    ]
+NOT_LIST = ''
+NOTHING_AT_ALL = None
+
+
 def get_files_to_convert(*args):
     '''
     Will take any number of arguments for files to process and check
@@ -41,7 +57,8 @@ def get_files_to_convert(*args):
     try:
         sys.argv[1]
     except:
-        print('No files given for conversion')
+        print('No files given for conversion.')
+        # pause_program(exit=True)
         sys.exit()
 
     for i in range(1, len(sys.argv)):
@@ -56,6 +73,7 @@ def get_files_to_convert(*args):
         files_to_convert[0]
     except:
         print('No valid files given for conversion')
+        # pause_program(exit=True)
         sys.exit()
 
     for i in range(0, len(files_to_convert)):
@@ -64,7 +82,7 @@ def get_files_to_convert(*args):
         print(f'Source file >> {file_name}')
 
 
-def parse_file_name(*args):
+def parse_file_name(file_name):
     '''
     Retrieves tokens from the source file's name
     Tokens in file name will create the file path for the converted files
@@ -76,7 +94,29 @@ def parse_file_name(*args):
 
     return: sequence_id, scene_id, suffix
     '''
-    pass
+    # print(naming_convention)
+    naming_convention = dict(
+        sequence_id = 'None',
+        scene_id = 'None',
+        suffix = 'None'
+        )
+    name_keys = list(naming_convention.keys())
+
+    file_name = file_name.replace(' ', '_')
+    file_name_parts = file_name.split('_')
+
+    for i in range(0, len(file_name_parts)):
+        naming_convention[name_keys[i]] = file_name_parts[i]
+
+    print(f'This is the file name now: {file_name} \n')
+    print(
+        '''This is the naming convention: \n
+        Sequence: {sequence_id} 
+        Scene: {scene_id} 
+        Suffix: {suffix}'''.format(**naming_convention)
+        )
+    # sys.exit()
+    pause_program(exit=True)
 
 
 def set_csv_destination():
@@ -89,50 +129,84 @@ def format_name(character_name):
     '''
     character_name = str(character_name)
     if len(character_name) >= 2:
-        character_name = character_name[0] + character_name[1:].lower() #keep first letter capitalized
+        #keep first letter capitalized
+        character_name = character_name[0] + character_name[1:].lower() 
         character_name = character_name
     return character_name
-
-
-def pause_program():
-    try:
-        program_pause = raw_input('Press the <ENTER> key to continue...')
-    except:
-        program_pause = input('Press the <ENTER> key to continue...')
 
 
 def create_csv_file():
     '''
     Creates csv file to convert script.txt lines for UE
     '''
-    file_name_input = None
-    converted_file = None
-    scene_id = None
-    starting_line_id = None
+    # file_name_input, converted_file, scene_id, starting_line_id 
     print('Starting file with scene number {scene_id}'.format(**locals()))
-    try:
-        converted_file.close()
-    except:
-        pass
+    # try:
+    #     converted_file.close()
+    # except:
+    #     pass
     
-    if len(file_name_input) > 4 and file_name_input[0:5] == "Scene":
-        csv_file_name = file_name_input + '.csv'
-    else:
-        csv_file_name = 'Scene' + str(scene_id) + '_' + file_name_input + '.csv'
+    # if len(file_name_input) > 4 and file_name_input[0:5] == "Scene":
+    #     csv_file_name = file_name_input + '.csv'
+    # else:
+    #     csv_file_name = 'Scene' + str(scene_id) + '_' + file_name_input + '.csv'
     converted_file = open(csv_file_name, 'w')
-    #first line of the file should contain column names
-    converted_file.write(
-        ',Speaker,Expression,Sound,Text,SpecialEvent,SpecialEffect,CharX,CharY,CharScale\n'
-        )
-    starting_line_id = 1
-    scene_id += 1
+    first_row = create_row(COLUMN_TITLES)
+    converted_file.write(first_row)
+    # starting_line_id = 1
+    # scene_id += 1
     return file_name_input, converted_file, scene_id, starting_line_id
 
 
-get_files_to_convert()
+def create_row(row_items):
+    '''
+    Creates row for csv based off items
+    '''
+    row_string = ''
+
+    if row_items == None:
+        print('There is nothing in this list.')
+        # pause_program()
+        sys.exit()
+    
+    if not type(row_items) == list:
+        print('This is not a list.')
+        # pause_program()
+        sys.exit()
+
+    for i in range(0, len(row_items)):
+        current_item = row_items[i]
+        row_string += f'{current_item},'
+
+    print(f'This is the row_string: {row_string}')
+
+    return row_string
+
+
+def pause_program(exit=False):
+    try:
+        pause = raw_input('Press the <ENTER> key to continue...')
+    except:
+        pause = input('Press the <ENTER> key to continue...')
+    if exit:
+        sys.exit()
+
+
+# ==============================TESTING=================================
+
+print('This is a test of the script converter tool...\n')
+
+# get_files_to_convert()
+
+file_name="RSY 012 test"
+parse_file_name(file_name)
+
+# print(type(COLUMN_TITLES)
+# create_row(NOTHING_AT_ALL)
 
 # create_csv_file()
 
+# ======================================================================
 
 # fileFound = False
 
@@ -161,6 +235,9 @@ get_files_to_convert()
 # scriptFile = open(file_name) #w opens in write mode
 # fullScript = scriptFile.readlines()
 # scriptFile.close()
+
+
+# create_csv_file()
 
 
 # print("Start at what row number?")
