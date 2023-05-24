@@ -28,8 +28,6 @@ import sys
 import fileinput
 import pathlib
 
-os.chdir('./') #change functioning directory to the folder of this file
-
 class ScriptConverter:
 
     def __init__(self, *args):
@@ -44,13 +42,13 @@ class ScriptConverter:
             'SpecialEffect',
             'CharX',
             'CharY',
-            'CharScale',
+            'CharScale'
             ]
         self.NOT_LIST = ''
         self.NOTHING_AT_ALL = None
 
-        # D
-        self.root_dir = 'this is the root directory path'
+        # Other stuff
+        self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
         self.file_name = ''
         self.name_tokens = dict(
             sequence_id = None,
@@ -68,6 +66,8 @@ class ScriptConverter:
         '''
         Will take any number of arguments for files to process and check
         their validity
+
+        return: files_to_convert
         '''
         # sys.argv[0] accesses the file path of the script run
 
@@ -98,7 +98,9 @@ class ScriptConverter:
         for i in range(0, len(files_to_convert)):
             source_file = files_to_convert[i]
             file_name = os.path.basename(source_file)
-            print(f'Source file >> {file_name}')
+            print(f'Source file: {file_name}')
+
+        return files_to_convert
 
 
     def parse_file_name(self, file_name):
@@ -110,65 +112,38 @@ class ScriptConverter:
         sequence_id = alpha coded with any length (RSY, P, TART, etc)
         scene_id = number coded with 3 places
         suffix = optional token or identifier
+
+        return name_tokens
         '''
-        name_keys = list(self.name_tokens.keys())
+        name_tokens = self.name_tokens
+        name_keys = list(name_tokens.keys())
         file_name = file_name.replace(' ', '_')
         file_name_parts = file_name.split('_')
 
         for i in range(0, len(file_name_parts)):
-            self.name_tokens[name_keys[i]] = file_name_parts[i]
+            name_tokens[name_keys[i]] = file_name_parts[i]
 
         print(f'This is the file name now: {file_name}')
-        print(
-            '''This is the naming convention:\n
-            Sequence: {sequence_id} 
-            Scene: {scene_id} 
-            Suffix: {suffix} \n'''.format(**self.name_tokens)
-            )
+        print('''This is the naming convention:\n
+                 Sequence: {sequence_id} 
+                 Scene: {scene_id} 
+                 Suffix: {suffix} \n'''.format(**name_tokens))
+
+        return name_tokens
 
 
-    def set_csv_destination(self):
-        seq_token = self.name_tokens.get('sequence_id')
-        scene_token = self.name_tokens.get('scene_id')
-        suffix_token = self.name_tokens.get('suffix')
-
-        print(self.root_dir)
-
-
-    def format_name(self, character_name):
+    def set_file_destination(self, name_tokens):
         '''
-        Format's name to use Title Casing
+        Create the 
         '''
-        character_name = str(character_name)
-        if len(character_name) >= 2:
-            #keep first letter capitalized
-            character_name = character_name[0] + character_name[1:].lower() 
-            character_name = character_name
-        return character_name
+        seq_token = name_tokens.get('sequence_id')
+        scene_token = name_tokens.get('scene_id')
+        suffix_token = name_tokens.get('suffix')
 
+        destination = f'{self.root_dir}\\{seq_token}\\{scene_token}'
+        print(f'Destination: {destination}')
 
-    def create_csv_file(self, file_name):
-        '''
-        Creates csv file to convert script.txt lines for UE
-        '''
-        # file_name_input, converted_file, scene_id, starting_line_id 
-        file_name_input = file_name
-        print('Starting file with scene number {scene_id}'.format(**locals()))
-        # try:
-        #     converted_file.close()
-        # except:
-        #     pass
-        
-        # if len(file_name_input) > 4 and file_name_input[0:5] == "Scene":
-        #     csv_file_name = file_name_input + '.csv'
-        # else:
-        #     csv_file_name = 'Scene' + str(scene_id) + '_' + file_name_input + '.csv'
-        converted_file = open(csv_file_name, 'w')
-        first_row = create_row(self.COLUMN_TITLES)
-        converted_file.write(first_row)
-        # starting_line_id = 1
-        # scene_id += 1
-        return file_name_input, converted_file, scene_id, starting_line_id
+        return destination
 
 
     def create_row(self, row_items):
@@ -196,6 +171,51 @@ class ScriptConverter:
         return row_string
 
 
+    def create_converted_file(self, input_file_name, destination, 
+                              extension='.csv'):
+        '''
+        Converts the .txt input file and it lines into a format for UE
+        Default file type for the converted file: .csv
+
+        return: converted_file
+        '''
+        # input_file_name, converted_file, scene_id, starting_line_id 
+        converted_file_name = '{destination}\\input_file_name{extension}'
+        try:
+            open(converted_file_name, 'x')
+        except:
+            print(f'''{converted_file_name} already exists. Exiting 
+                      the tool...''')
+            self.pause_program(exit=True)
+
+        open(converted_file_name, 'w')
+
+
+
+        # first_row = create_row(self.COLUMN_TITLES)
+        # converted_file.write(first_row)
+        # starting_line_id = 1
+        # scene_id += 1
+        return converted_file
+
+        # try:
+        #     converted_file.close()
+        # except:
+        #     pass
+
+
+    def format_name(self, character_name):
+        '''
+        Format's name to use Title Casing
+        '''
+        character_name = str(character_name)
+        if len(character_name) >= 2:
+            #keep first letter capitalized
+            character_name = character_name[0] + character_name[1:].lower() 
+            character_name = character_name
+        return character_name
+
+
     def pause_program(self, exit=False):
         try:
             pause = raw_input('Press the <ENTER> key to continue...')
@@ -204,20 +224,26 @@ class ScriptConverter:
         if exit:
             sys.exit()
 
+    def run_warning():
+        pass
+
+
 
 # ==============================TESTING=================================
     def run_script_converter(self):
         print('\nThis is a test of the script converter tool...\n')
 
-        # get_files_to_convert()
+        files_to_convert = self.get_files_to_convert()
+
 
         name_tokens = self.parse_file_name(file_name='RSY 012 test')
-        self.set_csv_destination()
+        destination = self.set_file_destination(name_tokens)
+
 
         # print(type(self.COLUMN_TITLES)
         # create_row(self.NOTHING_AT_ALL)
 
-        # create_csv_file()
+        # self.create_csv_file()
 
 ScriptConverter = ScriptConverter()
 ScriptConverter.run_script_converter()
