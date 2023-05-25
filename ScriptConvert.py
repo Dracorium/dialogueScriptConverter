@@ -27,6 +27,7 @@ import os #to handle file paths for different operating systems
 import sys
 import fileinput
 import pathlib
+import tkinter #create dialog boxes
 
 class ScriptConverter:
 
@@ -47,14 +48,15 @@ class ScriptConverter:
         self.NOT_LIST = ''
         self.NOTHING_AT_ALL = None
 
-        # Other stuff
-        self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
-        self.file_name = ''
+        # Constructing variables for tool
+        self.root_dir = 'X:\\Writing\\vnframework'
+        # self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
         self.name_tokens = dict(
             sequence_id = None,
             scene_id = None,
             suffix = None
             )
+        self.files_to_convert = []
 
 
 
@@ -71,7 +73,7 @@ class ScriptConverter:
         '''
         # sys.argv[0] accesses the file path of the script run
 
-        files_to_convert = []
+        # self.files_to_convert = []
 
         try:
             sys.argv[1]
@@ -82,28 +84,26 @@ class ScriptConverter:
 
         for i in range(1, len(sys.argv)):
             source = str(sys.argv[i])
-            if os.path.exists(f'{source}'):
-                files_to_convert.append(source)
+            if pathlib.Path(source).exists():
                 print(f'Source path found [{source}]')
+                self.files_to_convert.append(source)
             else:
                 print(f'Source file [{source}] NOT found.')
 
         try:
-            files_to_convert[0]
+            self.files_to_convert[0]
         except:
             print('No valid files given for conversion')
             # self.pause_program(exit=True)
             sys.exit()
 
-        for i in range(0, len(files_to_convert)):
-            source_file = files_to_convert[i]
-            file_name = os.path.basename(source_file)
-            print(f'Source file: {file_name}')
-
-        return files_to_convert
+        # for i in range(0, len(self.files_to_convert)):
+        #     source_path = self.files_to_convert[i]
+        #     file_name = os.path.basename(source_path)
+        #     print(f'Source file: {file_name}')
 
 
-    def parse_file_name(self, file_name):
+    def parse_file_name(self, source_name):
         '''
         Retrieves tokens from the source file's name
         Tokens in file name will create the hierarchy for the converted files
@@ -117,11 +117,11 @@ class ScriptConverter:
         '''
         name_tokens = self.name_tokens
         name_keys = list(name_tokens.keys())
-        file_name = file_name.replace(' ', '_')
-        file_name_parts = file_name.split('_')
+        file_name = source_name.replace(' ', '_')
+        name_parts = source_name.split('_')
 
-        for i in range(0, len(file_name_parts)):
-            name_tokens[name_keys[i]] = file_name_parts[i]
+        for i in range(0, len(name_parts)):
+            name_tokens[name_keys[i]] = name_parts[i]
 
         print(f'This is the file name now: {file_name}')
         print('''This is the naming convention:\n
@@ -129,18 +129,20 @@ class ScriptConverter:
                  Scene: {scene_id} 
                  Suffix: {suffix} \n'''.format(**name_tokens))
 
-        return name_tokens
+        return file_name, name_tokens
 
 
     def set_file_destination(self, name_tokens):
         '''
-        Create the 
+        Create the directory for the destination of the converted file
+
+        return: destination
         '''
         seq_token = name_tokens.get('sequence_id')
         scene_token = name_tokens.get('scene_id')
         suffix_token = name_tokens.get('suffix')
 
-        destination = f'{self.root_dir}\\{seq_token}\\{scene_token}'
+        destination = pathlib.Path(f'{self.root_dir}\\{seq_token}\\{scene_token}')
         print(f'Destination: {destination}')
 
         return destination
@@ -171,37 +173,32 @@ class ScriptConverter:
         return row_string
 
 
-    def create_converted_file(self, input_file_name, destination, 
-                              extension='.csv'):
+    def create_converted_file(self, source_file, destination_path, 
+                              extension='csv'):
         '''
         Converts the .txt input file and it lines into a format for UE
         Default file type for the converted file: .csv
 
         return: converted_file
         '''
-        # input_file_name, converted_file, scene_id, starting_line_id 
-        converted_file_name = '{destination}\\input_file_name{extension}'
-        try:
-            open(converted_file_name, 'x')
-        except:
-            print(f'''{converted_file_name} already exists. Exiting 
-                      the tool...''')
-            self.pause_program(exit=True)
-
-        open(converted_file_name, 'w')
-
-
-
-        # first_row = create_row(self.COLUMN_TITLES)
-        # converted_file.write(first_row)
-        # starting_line_id = 1
-        # scene_id += 1
-        return converted_file
-
+        # source_file, converted_file, scene_id, starting_line_id 
         # try:
         #     converted_file.close()
         # except:
         #     pass
+        file_name = f'{source_file}.{extension}'
+        destination_file = destination_path / file_name
+
+        destination_path.mkdir(parents=True, exist_ok=True)
+        if pathlib.Path(destination_file).exists():
+            print(f'{destination_file} already exists. Exiting the tool...')
+            self.pause_program(exit=True)
+
+        with destination_file.open('w') as converted_file:
+            first_row = self.create_row(self.COLUMN_TITLES)
+            converted_file.write(first_row)
+
+        return converted_file
 
 
     def format_name(self, character_name):
@@ -224,7 +221,7 @@ class ScriptConverter:
         if exit:
             sys.exit()
 
-    def run_warning():
+    def run_warning(self):
         pass
 
 
@@ -233,11 +230,14 @@ class ScriptConverter:
     def run_script_converter(self):
         print('\nThis is a test of the script converter tool...\n')
 
-        files_to_convert = self.get_files_to_convert()
+        self.get_files_to_convert()
+        for file in self.files_to_convert:
+            source_name = pathlib.Path(file).stem
+            # print(f'Source file: {source_name}')
+            file_name, name_tokens = self.parse_file_name(source_name)
+            destination = self.set_file_destination(name_tokens)
+            converted_file = self.create_converted_file(file_name, destination)
 
-
-        name_tokens = self.parse_file_name(file_name='RSY 012 test')
-        destination = self.set_file_destination(name_tokens)
 
 
         # print(type(self.COLUMN_TITLES)
