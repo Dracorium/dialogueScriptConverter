@@ -49,11 +49,11 @@ class ScriptConverter:
         self.NOTHING_AT_ALL = None
 
         # Constructing variables for tool
-        self.root_dir = 'X:\\Writing\\vnframework'
-        # self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
+        # self.root_dir = 'X:\\Writing\\vnframework'
+        self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
         self.name_tokens = dict(
-            sequence_id = None,
-            scene_id = None,
+            sequence = None,
+            scene = None,
             suffix = None
             )
         self.files_to_convert = []
@@ -83,8 +83,8 @@ class ScriptConverter:
             sys.exit()
 
         for i in range(1, len(sys.argv)):
-            source = str(sys.argv[i])
-            if pathlib.Path(source).exists():
+            source = pathlib.Path(sys.argv[i])
+            if source.exists():
                 print(f'Source path found [{source}]')
                 self.files_to_convert.append(source)
             else:
@@ -107,10 +107,10 @@ class ScriptConverter:
         '''
         Retrieves tokens from the source file's name
         Tokens in file name will create the hierarchy for the converted files
-        File name convention: <sequence_id>_<scene_id>_<suffix>.txt
+        File name convention: <sequence>_<scene>_<suffix>.txt
 
-        sequence_id = alpha coded with any length (RSY, P, TART, etc)
-        scene_id = number coded with 3 places
+        sequence = alpha coded with any length (RSY, P, TART, etc)
+        scene = number coded with 3 places (but could change)
         suffix = optional token or identifier
 
         return name_tokens
@@ -125,8 +125,8 @@ class ScriptConverter:
 
         print(f'This is the file name now: {file_name}')
         print('''This is the naming convention:\n
-                 Sequence: {sequence_id} 
-                 Scene: {scene_id} 
+                 Sequence: {sequence} 
+                 Scene: {scene} 
                  Suffix: {suffix} \n'''.format(**name_tokens))
 
         return file_name, name_tokens
@@ -138,8 +138,8 @@ class ScriptConverter:
 
         return: destination
         '''
-        seq_token = name_tokens.get('sequence_id')
-        scene_token = name_tokens.get('scene_id')
+        seq_token = name_tokens.get('sequence')
+        scene_token = name_tokens.get('scene')
         suffix_token = name_tokens.get('suffix')
 
         destination = pathlib.Path(f'{self.root_dir}\\{seq_token}\\{scene_token}')
@@ -173,43 +173,88 @@ class ScriptConverter:
         return row_string
 
 
-    def create_converted_file(self, source_file, destination_path, 
+    def create_output_file(self, source_file, destination_path, 
                               extension='csv'):
         '''
-        Converts the .txt input file and it lines into a format for UE
-        Default file type for the converted file: .csv
+        Converts the .txt/.ink input file and it lines into a format for UE
+        Default file type for the converted file: csv
 
-        return: converted_file
+        return: output_file
         '''
-        # source_file, converted_file, scene_id, starting_line_id 
+        # source_file, output_file, scene, starting_line_id 
         # try:
-        #     converted_file.close()
+        #     output_file.close()
         # except:
         #     pass
         file_name = f'{source_file}.{extension}'
         destination_file = destination_path / file_name
 
         destination_path.mkdir(parents=True, exist_ok=True)
-        if pathlib.Path(destination_file).exists():
+        if destination_file.exists():
             print(f'{destination_file} already exists. Exiting the tool...')
-            self.pause_program(exit=True)
+            self.pause_program()
 
-        with destination_file.open('w') as converted_file:
+        with destination_file.open('w') as output_file:
             first_row = self.create_row(self.COLUMN_TITLES)
-            converted_file.write(first_row)
+            output_file.write(first_row)
 
-        return converted_file
+        return output_file
+
+
+    def convert_script_lines(self, file):
+        '''
+        Crawl through each line in the source script file and
+        translate formatting into a dictionary 
+
+        return: line_string
+        '''
+
+        with file.open('r') as script_file:
+            script_lines = script_file.readlines()
+
+        #loop through each line, alter it, and write it to new file
+        for line in script_lines:
+            character_name = None
+            dialogue = None
+            event_flag = None
+
+            # Check for comments, may have to alter this for ink language
+            if line[0] == '/':  
+
+            # All of this here is again original code that I'm just deciphering XD
+
+        #     line = line.rstrip('\n')
+        #     line = line.replace('"', '""') #exit out of double quotes by making two
+        #     character_name = dialogue = specialEvent = '' #reset vars in the loop
+        #     if len(line) >= 1:
+        #         if line[0] != "#":  #hashtags reserved for comments
+        #             if line[0:2] == "__":
+        #                 create_csv_file()
+        #             elif line[0] == '*':
+        #                 try:
+        #                     specialEvent, dialogue = line.split(': ', 1)
+        #                 except:
+        #                     #if no colon, just set the special event
+        #                     specialEvent = line
+        #                 specialEvent = specialEvent[1:] #take out asterisk
+                        
+        #             else:
+        #                 try:
+        #                     character_name, dialogue = line.split(': ', 1) #split line only once
+        #                     character_name = format_name(character_name)
+        #                 except:
+        #                     print("This string could not be split:")
+        #                     print(line)
+        #                     character_name = line
+
 
 
     def format_name(self, character_name):
         '''
-        Format's name to use Title Casing
+        Formats name to use Title Casing
+        Weird that the original author didn't use this method.
         '''
-        character_name = str(character_name)
-        if len(character_name) >= 2:
-            #keep first letter capitalized
-            character_name = character_name[0] + character_name[1:].lower() 
-            character_name = character_name
+        character_name = character_name.title()
         return character_name
 
 
@@ -231,12 +276,17 @@ class ScriptConverter:
         print('\nThis is a test of the script converter tool...\n')
 
         self.get_files_to_convert()
+
         for file in self.files_to_convert:
-            source_name = pathlib.Path(file).stem
+            source_name = file.stem
             # print(f'Source file: {source_name}')
             file_name, name_tokens = self.parse_file_name(source_name)
             destination = self.set_file_destination(name_tokens)
-            converted_file = self.create_converted_file(file_name, destination)
+            # output_file = self.create_output_file(file_name, destination)
+            # print(output_file.name)
+            self.convert_script_lines(file)
+
+
 
 
 
@@ -250,29 +300,15 @@ ScriptConverter.run_script_converter()
 
 # ======================================================================
 
+'''
+Everything down here is from the original code that this was forked from.
+VN Framework is what we're using to manage dialogue and event data for the 
+"visual novel" part of the game.
+
+'''
+
+
 # fileFound = False
-
-# while not fileFound:
-#     print("What is the file name (no file extension needed)?")
-#     try:
-#         file_name_input = input()
-#     except:
-#         file_name_input = raw_input()
-#     file_name = file_name_input + ".txt"
-#     fileFound = os.path.isfile(file_name)
-#     if not fileFound:
-#         print("ERROR: Cannot find a .txt file in this folder with that name. Please try again."
-#               "\n***"
-#               )
-#         exit()
-
-
-# print("What's the first scene number?")
-# try:
-#    scene_id = int(input())
-# except ValueError:
-#     print("That wasn't a valid number. Defaulting to scene number 0.")
-#     scene_id = 0
 
 # scriptFile = open(file_name) #w opens in write mode
 # fullScript = scriptFile.readlines()
