@@ -255,8 +255,8 @@ class ScriptConverter:
                 scene_num += 1
                 csv_items['scene_number'] = scene_num
                 data = line.strip().split(delimiter)
-                csv_items['speaker'] = data[0]
-                csv_items['text'] = data[1]
+                csv_items['speaker'] = data[0].strip()
+                csv_items['text'] = data[1].strip()
                 row_string = self.create_row(csv_items)
                 converted_lines = converted_lines + row_string
         print(converted_lines)
