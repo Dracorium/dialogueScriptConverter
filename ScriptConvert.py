@@ -50,7 +50,8 @@ class ScriptConverter:
 
         # Constructing variables for tool
         # self.root_dir = 'X:\\Writing\\vnframework'
-        self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
+        # self.root_dir = 'D:\\.tools\\dialogueScriptConverter\\samples\\root'
+        self.root_dir = os.getcwd()
         self.name_tokens = dict(
             sequence = None,
             scene = None,
@@ -171,10 +172,8 @@ class ScriptConverter:
         print(f'This is the row_string: {row_string}')
 
         return row_string
-
-
-    def create_output_file(self, source_file, destination_path, 
-                              extension='csv'):
+        
+    def create_output_file(self, source_file, destination_path, extension='csv'):
         '''
         Converts the .txt/.ink input file and it lines into a format for UE
         Default file type for the converted file: csv
@@ -200,7 +199,6 @@ class ScriptConverter:
 
         return output_file
 
-
     def convert_script_lines(self, file):
         '''
         Crawl through each line in the source script file and
@@ -209,17 +207,44 @@ class ScriptConverter:
         return: line_string
         '''
 
+        delimiter = ':'
+        is_comment = False
+        scene_num = 0
+        converted_lines = ''
         with file.open('r') as script_file:
             script_lines = script_file.readlines()
 
-        #loop through each line, alter it, and write it to new file
         for line in script_lines:
-            character_name = None
-            dialogue = None
-            event_flag = None
+            scene_number = None
+            speaker = None
+            expression = None
+            sound = None
+            text = None
+            special_event = None
+            special_effect = None
+            char_x = 0
+            char_y = 0
+            char_scale = 0
+            scene_num += 1
 
-            # Check for comments, may have to alter this for ink language
-            if line[0] == '/':  
+            if is_comment:
+                if line.startswith('*/'):
+                    is_comment = False
+                    continue
+            if line.startswith('/*'):
+                is_comment = True
+                continue
+            if line.startswith('/'):
+                continue
+
+            if ':' in line:
+                data = line.strip().split(delimiter)
+                print(data)
+                speaker = data[0]
+                text = data[1]
+                converted_lines = converted_lines + f"\"{scene_num}\",\"{speaker}\",\"{expression}\",\"{sound}\",\"{text}\",\"{special_event}\",\"{special_effect}\",\"{char_x}\",\"{char_y}\",\"{char_scale}\"\n"
+        print(converted_lines)
+        return converted_lines
 
             # All of this here is again original code that I'm just deciphering XD
 
@@ -250,10 +275,6 @@ class ScriptConverter:
 
 
     def format_name(self, character_name):
-        '''
-        Formats name to use Title Casing
-        Weird that the original author didn't use this method.
-        '''
         character_name = character_name.title()
         return character_name
 
@@ -278,13 +299,16 @@ class ScriptConverter:
         self.get_files_to_convert()
 
         for file in self.files_to_convert:
+            '''
             source_name = file.stem
-            # print(f'Source file: {source_name}')
+            print(f'Source file: {source_name}')
             file_name, name_tokens = self.parse_file_name(source_name)
             destination = self.set_file_destination(name_tokens)
-            # output_file = self.create_output_file(file_name, destination)
-            # print(output_file.name)
+            output_file = self.create_output_file(file_name, destination)
+            print(output_file.name)
+            '''
             self.convert_script_lines(file)
+            
 
 
 
