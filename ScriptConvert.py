@@ -229,16 +229,16 @@ class ScriptConverter:
 
         for line in script_lines:
             csv_items = {
-            'scene_number' : 'None',
-            'speaker' : 'None',
-            'expression' : 'None',
-            'sound' : 'None',
-            'text' : 'None',
-            'special_event' : 'None',
-            'special_effect' : 'None',
-            'char_x' : '0',
-            'char_y' : '0',
-            'char_scale' : '0',
+            'scene_number' : '\"0\"',
+            'speaker' : '\"none\"',
+            'expression' : '\"none\"',
+            'sound' : '\"none\"',
+            'text' : '\"none\"',
+            'special_event' : '\"none\"',
+            'special_effect' : '\"none\"',
+            'char_x' : '\"0\"',
+            'char_y' : '\"0\"',
+            'char_scale' : '\"0\"',
             }
 
             if is_comment:
@@ -255,8 +255,8 @@ class ScriptConverter:
                 scene_num += 1
                 csv_items['scene_number'] = scene_num
                 data = line.strip().split(delimiter)
-                csv_items['speaker'] = data[0].strip()
-                csv_items['text'] = data[1].strip()
+                csv_items['speaker'] = f'\"{data[0].strip()}\"'
+                csv_items['text'] = f'\"{data[1].strip()}\"'
                 row_string = self.create_row(csv_items)
                 converted_lines = converted_lines + row_string
         print(converted_lines)
