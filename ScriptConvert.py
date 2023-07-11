@@ -33,18 +33,18 @@ class ScriptConverter:
 
     def __init__(self, *args):
         # Constants
-        self.COLUMN_TITLES = [
-            'LineID',
-            'Speaker',
-            'Expression',
-            'Sound',
-            'Text',
-            'SpecialEvent',
-            'SpecialEffect',
-            'CharX',
-            'CharY',
-            'CharScale'
-            ]
+        self.COLUMN_TITLES = {
+            '1' : 'LineID',
+            '2' : 'Speaker',
+            '3' : 'Expression',
+            '4' : 'Sound',
+            '5' : 'Text',
+            '6' : 'SpecialEvent',
+            '7' : 'SpecialEffect',
+            '8' : 'CharX',
+            '9' : 'CharY',
+            '10' : 'CharScale'
+            }
         self.NOT_LIST = ''
         self.NOTHING_AT_ALL = None
 
@@ -151,23 +151,27 @@ class ScriptConverter:
 
     def create_row(self, row_items):
         '''
-        Creates row for csv based off items
+        Creates row for csv based off items in a dict
         '''
         row_string = ''
 
         if row_items == None:
-            print('There is nothing in this list.')
+            print('There is nothing in this dict.')
             # self.pause_program()
             sys.exit()
         
-        if not type(row_items) == list:
-            print('This is not a list.')
+        print
+        print(type(row_items))
+        if not type(row_items) == dict:
+            print('This is not a dict.')
             # self.pause_program()
             sys.exit()
 
-        for i in range(0, len(row_items)):
-            current_item = row_items[i]
+        for item in row_items.values():
+            current_item = item
             row_string += f'{current_item},'
+        
+        row_string = row_string[:-1] + '\n'
 
         print(f'This is the row_string: {row_string}')
 
@@ -194,10 +198,16 @@ class ScriptConverter:
             self.pause_program()
 
         with destination_file.open('w') as output_file:
-            first_row = self.create_row(self.COLUMN_TITLES)
+            first_row = self.create_row(self.COLUMN_TITLES) + '\n'
             output_file.write(first_row)
 
         return output_file
+    
+    def write_to_output(self, file, data):
+        outfile = open(file, 'w')
+        outfile.write(data)
+        outfile.close
+        return
 
     def convert_script_lines(self, file):
         '''
@@ -205,6 +215,9 @@ class ScriptConverter:
         translate formatting into a dictionary 
 
         return: line_string
+
+        TODO: extract expression, sound, text, special_event, special_effect, char_x, char_y, char_scale
+
         '''
 
         delimiter = ':'
@@ -215,17 +228,18 @@ class ScriptConverter:
             script_lines = script_file.readlines()
 
         for line in script_lines:
-            scene_number = None
-            speaker = None
-            expression = None
-            sound = None
-            text = None
-            special_event = None
-            special_effect = None
-            char_x = 0
-            char_y = 0
-            char_scale = 0
-            scene_num += 1
+            csv_items = {
+            'scene_number' : 'None',
+            'speaker' : 'None',
+            'expression' : 'None',
+            'sound' : 'None',
+            'text' : 'None',
+            'special_event' : 'None',
+            'special_effect' : 'None',
+            'char_x' : '0',
+            'char_y' : '0',
+            'char_scale' : '0',
+            }
 
             if is_comment:
                 if line.startswith('*/'):
@@ -238,15 +252,17 @@ class ScriptConverter:
                 continue
 
             if ':' in line:
+                scene_num += 1
+                csv_items['scene_number'] = scene_num
                 data = line.strip().split(delimiter)
-                print(data)
-                speaker = data[0]
-                text = data[1]
-                converted_lines = converted_lines + f"\"{scene_num}\",\"{speaker}\",\"{expression}\",\"{sound}\",\"{text}\",\"{special_event}\",\"{special_effect}\",\"{char_x}\",\"{char_y}\",\"{char_scale}\"\n"
+                csv_items['speaker'] = data[0]
+                csv_items['text'] = data[1]
+                row_string = self.create_row(csv_items)
+                converted_lines = converted_lines + row_string
         print(converted_lines)
         return converted_lines
 
-            # All of this here is again original code that I'm just deciphering XD
+        ''' All of this here is again original code that I'm just deciphering XD
 
         #     line = line.rstrip('\n')
         #     line = line.replace('"', '""') #exit out of double quotes by making two
@@ -271,7 +287,7 @@ class ScriptConverter:
         #                     print("This string could not be split:")
         #                     print(line)
         #                     character_name = line
-
+        '''
 
 
     def format_name(self, character_name):
@@ -299,21 +315,16 @@ class ScriptConverter:
         self.get_files_to_convert()
 
         for file in self.files_to_convert:
-            '''
             source_name = file.stem
             print(f'Source file: {source_name}')
             file_name, name_tokens = self.parse_file_name(source_name)
             destination = self.set_file_destination(name_tokens)
             output_file = self.create_output_file(file_name, destination)
-            print(output_file.name)
-            '''
-            self.convert_script_lines(file)
+            print(f"Converting to csv format")
+            data = self.convert_script_lines(file)
+            print(f"Writing to: {output_file.name}")
+            self.write_to_output(output_file.name, data)
             
-
-
-
-
-
         # print(type(self.COLUMN_TITLES)
         # create_row(self.NOTHING_AT_ALL)
 
