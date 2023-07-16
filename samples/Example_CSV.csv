@@ -2,3 +2,27 @@
 1,"Jessica","Surprised","None","Woah, you figured out how to do a custom scene!","","WhiteFlash","20.000000","0.000000","1.500000"
 2,"Jessica","Uncertain","None","It looks like this is what we will have to do each time we want to make a scene huh?","none","none","0.000000","0.000000","0.000000"
 3,"Jessica","Smile","None","It looks like you're ready to get started though. Let's go!","none","none","0.000000","0.000000","0.000000"
+
+# Default values for things specific to VN Framework
+
+# Sound = "none"
+# SpecialEvent = "none"
+# SpecialEffect = "none"
+# CharX = "0.000000"
+# CharY = "0.000000"
+# CharScale = "0.000000"
+
+# Breakdown of a single line in a CSV for VN Framework
+
+# 3,"Jessica","Smile","None","It looks like you're ready to get started though. Let's go!","none","none","0.000000","0.000000","0.000000"
+
+# LineID = 3
+# CharacterName = Jessica
+# Expression = Smile
+# Sound = "none"
+# DialogueText = "It looks like you're ready to get started though. Let's go!"
+# SpecialEvent = "none"
+# SpecialEffect = "none"
+# CharX = "0.000000"
+# CharY = "0.000000"
+# CharScale = "0.000000"
