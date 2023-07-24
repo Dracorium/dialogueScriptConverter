@@ -124,6 +124,8 @@ class ScriptConverter:
         for i in range(0, len(name_parts)):
             name_tokens[name_keys[i]] = name_parts[i]
 
+        # Add a check to compare naming scheme against a template to ensure naming is correct
+
         print(f'This is the file name now: {file_name}')
         print('''This is the naming convention:\n
                  Sequence: {sequence} 
@@ -222,14 +224,14 @@ class ScriptConverter:
 
         delimiter = ':'
         is_comment = False
-        scene_num = 0
+        line_count = 0
         converted_lines = ''
         with file.open('r') as script_file:
             script_lines = script_file.readlines()
 
         for line in script_lines:
             csv_items = {
-            'scene_number' : '\"0\"',
+            'line_number' : '\"0\"',
             'speaker' : '\"none\"',
             'expression' : '\"none\"',
             'sound' : '\"none\"',
@@ -252,8 +254,8 @@ class ScriptConverter:
                 continue
 
             if ':' in line:
-                scene_num += 1
-                csv_items['scene_number'] = scene_num
+                line_count += 1
+                csv_items['line_number'] = f'{sequence}{scene_token}_{line_count}'
                 data = line.strip().split(delimiter)
                 csv_items['speaker'] = f'\"{data[0].strip()}\"'
                 csv_items['text'] = f'\"{data[1].strip()}\"'
